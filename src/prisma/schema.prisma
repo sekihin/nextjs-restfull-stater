@@ -1,0 +1,105 @@
+datasource NorthwindAPIDB {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model Categories {
+    CategoryID   Int        @id @unique @default(autoincrement())
+    CategoryName String     @NorthwindAPIDB.VarChar(256)
+    Description  String     @NorthwindAPIDB.VarChar(256)
+    products     Products[]
+
+    @@unique([CategoryName, Description])
+    @@index([CategoryName], name: "CategoryName_idx")
+}
+
+model Customers {
+    CustomerID   Int      @id @unique @default(autoincrement())
+    CustomerName String   @NorthwindAPIDB.VarChar(256)
+    ContactName  String   @NorthwindAPIDB.VarChar(256)
+    Address      String   @NorthwindAPIDB.VarChar(256)
+    City         String   @NorthwindAPIDB.VarChar(256)
+    PostalCode   String   @NorthwindAPIDB.VarChar(256)
+    Country      String   @NorthwindAPIDB.VarChar(256)
+    orders       Orders[]
+
+    @@unique([CustomerName, ContactName])
+    @@index([CustomerName], name: "CustomerName_idx")
+}
+
+model Employees {
+    EmployeeID Int      @id @unique @default(autoincrement())
+    LastName   String   @NorthwindAPIDB.VarChar(256)
+    FirstName  String   @NorthwindAPIDB.VarChar(256)
+    BirthDate  DateTime
+    Photo      String   @NorthwindAPIDB.VarChar(256)
+    Notes      String   @NorthwindAPIDB.VarChar(2048)
+    orders     Orders[]
+
+    @@unique(fields: [FirstName, LastName])
+    @@index([LastName], name: "LastName_idx")
+}
+
+model Shippers {
+    ShipperID   Int      @id @unique @default(autoincrement())
+    ShipperName String   @unique @NorthwindAPIDB.VarChar(256)
+    Phone       String   @unique @NorthwindAPIDB.VarChar(256)
+    orders      Orders[]
+
+    @@index([ShipperName], name: "ShipperName_idx")
+}
+
+model Suppliers {
+    SupplierID   Int        @id @unique @default(autoincrement())
+    SupplierName String     @NorthwindAPIDB.VarChar(256)
+    ContactName  String     @NorthwindAPIDB.VarChar(256)
+    Address      String     @NorthwindAPIDB.VarChar(256)
+    City         String     @NorthwindAPIDB.VarChar(256)
+    PostalCode   String     @NorthwindAPIDB.VarChar(256)
+    Country      String     @NorthwindAPIDB.VarChar(256)
+    Phone        String     @NorthwindAPIDB.VarChar(256)
+    products     Products[]
+
+    @@unique([SupplierName, ContactName, Phone])
+    @@index([SupplierName], name: "SupplierName_idx")
+}
+
+model Products {
+    ProductID    Int            @id @unique @default(autoincrement())
+    ProductName  String         @NorthwindAPIDB.VarChar(256)
+    SupplierID   Int
+    CategoryID   Int
+    Unit         String         @NorthwindAPIDB.VarChar(256)
+    Price        Int
+    Supplier     Suppliers      @relation(fields: [SupplierID], references: [SupplierID])
+    Category     Categories     @relation(fields: [CategoryID], references: [CategoryID])
+    orderdetails OrderDetails[]
+
+    @@unique([ProductName])
+    @@index([ProductName], name: "ProductName_idx")
+}
+
+model Orders {
+    OrderID      Int            @id @unique @default(autoincrement())
+    CustomerID   Int
+    EmployeeID   Int
+    OrderDate    DateTime
+    ShipperID    Int
+    Customer     Customers      @relation(fields: [CustomerID], references: [CustomerID])
+    Employee     Employees      @relation(fields: [EmployeeID], references: [EmployeeID])
+    Shipper      Shippers       @relation(fields: [ShipperID], references: [ShipperID])
+    orderdetails OrderDetails[]
+}
+
+model OrderDetails {
+    OrderDetailID Int      @id @unique @default(autoincrement())
+    OrderID       Int
+    ProductID     Int
+    Quantity      Int
+    Order         Orders   @relation(fields: [OrderID], references: [OrderID])
+    Product       Products @relation(fields: [ProductID], references: [ProductID])
+}
